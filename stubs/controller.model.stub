@@ -1,0 +1,121 @@
+<?php
+
+namespace {{ namespace }};
+
+use {{ namespacedModel }};
+use {{ rootNamespace }}Http\Controllers\Controller;
+use {{ namespacedRequests }}
+use Illuminate\Support\Facades\DB;
+
+
+class {{ class }} extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        ${{ modelVariable }} = {{ model }}::paginate(20);
+        return view("admin.{{ model }}.index",compact("{{ modelVariable }}"));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+         ${{ modelVariable }} = new {{ model }}();
+        return view("admin.{{ model }}.form",compact("{{ modelVariable }}"));
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \{{ namespacedStoreRequest }}  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store({{ storeRequest }} $request)
+    {
+        DB::beginTransaction();
+
+        try{
+            {{ model }}::create($request->all());
+            request()->session()->flash('success',"new {{model}} created successfully");
+            DB::commit();
+            return redirect()->route('{{model}}.index');
+        } catch (\Throwable $th) {
+            request()->session()->flash('error',$th->getMessage());
+            DB::rollback();
+            return redirect()->back()->withInput();
+
+        }
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  \{{ namespacedModel }}  ${{ modelVariable }}
+     * @return \Illuminate\Http\Response
+     */
+    public function show({{ model }} ${{ modelVariable }})
+    {
+        //
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  \{{ namespacedModel }}  ${{ modelVariable }}
+     * @return \Illuminate\Http\Response
+     */
+    public function edit({{ model }} ${{ modelVariable }})
+    {
+        return view("admin.{{ model }}.form",compact("{{ modelVariable }}"));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \{{ namespacedUpdateRequest }}  $request
+     * @param  \{{ namespacedModel }}  ${{ modelVariable }}
+     * @return \Illuminate\Http\Response
+     */
+    public function update({{ updateRequest }} $request, {{ model }} ${{ modelVariable }})
+    {
+         DB::beginTransaction();
+          try{
+           ${{ modelVariable }}->update($request->all());
+            request()->session()->flash('success',"new {{model}} created successfully");
+            DB::commit();
+            return redirect()->route('{{model}}.index');
+
+        } catch (\Throwable $th) {
+            request()->session()->flash('error',$th->getMessage());
+            DB::rollback();
+            return redirect()->back()->withInput();
+
+        }
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  \{{ namespacedModel }}  ${{ modelVariable }}
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy({{ model }} ${{ modelVariable }})
+    {
+        try{
+             ${{ modelVariable }}->delete();
+              request()->session()->flash('success',"{{model}} deleted successfully");
+            return redirect()->route('{{model}}.index');
+        } catch (\Throwable $th) {
+               request()->session()->flash('error',$th->getMessage());
+            return redirect()->back()->withInput();
+        }
+    }
+}

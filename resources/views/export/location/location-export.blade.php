@@ -1,0 +1,22 @@
+<table>
+    <thead>
+        <tr>
+            <th>SN.</th>
+            <th>From(Hub)</th>
+            <th>To(Location)</th>
+            <th>Local(City)</th>
+            <th>Charge</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach ($locations as $index=>$location)
+        <tr>
+            <td>{{$index+1}}</td>
+            <td>{{$location['from']}}</td>
+            <td>{{$location['to']}}</td>
+            <td>{{$location['local_address']}}</td>
+            <td>{{$location['charge']}}</td>
+        </tr>
+        @endforeach
+    </tbody>
+</table>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Order PDF</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 13px;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        .pdf-tables table th {
+            white-space: nowrap;
+            background: #39afb2;
+            color:#fff;
+        }
+
+        .pdf-tables table th,
+        .pdf-tables table td {
+            padding: 7px 10px;
+            vertical-align: top;
+            line-height: 1.2;
+            text-align: left;
+        }
+        .pdf-tables-head table th, 
+        .pdf-tables-head table td{
+            padding:5px 0;
+        }
+        ul{
+            margin:0;
+            padding:0;
+            padding-left:15px;
+        }
+        li{
+            font-size: 13px;
+        }
+        li+li{
+            margin-top:5px;
+        }
+        h3{
+            font-size: 22px;
+            text-align: center;
+        }
+        h4{
+            margin-bottom:10px;
+        }
+        .pdf-tables-head td{
+            vertical-align: top;
+        }
+        .logo{
+            text-align: center;
+            margin-bottom:20px;
+        }
+        .logo img{
+            height: 80px;
+            width: auto;
+        }
+        .clear{
+            position: relative;
+        }
+        .clear::after{
+            display: block;
+            content: '';
+            clear: both;
+        }
+    </style>
+</head>
+
+<body>
+    
+    <div class="logo">
+        <img src="{{$tick}}" alt="Logo">
+    </div>
+    <h3>Delivery Order Details</h3>
+    <div class="pdf-tables-head">
+        <table width="100%" style="margin-bottom:20px;">
+            <tbody>
+                <tr>
+                    <td style="width: 50%">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td style="padding-right:10px;">Ref No.:</td>
+                                    <td><strong>{{@$refId}}</strong></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-right:10px;">Requested By:</td>
+                                    <td>{{@$customer->name}}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-right:10px;">Order Date:</td>
+                                    <td>{{ date('d M Y',strtotime(@$order->created_at))}}</td>
+                                </tr>
+                                {{-- <tr>
+                                    <td style="padding-right:10px;">Deliver To:</td>
+                                    <td>Nectar Digit</td>
+                                </tr> --}}
+                            </tbody>
+                        </table>
+                    </td>
+                    <td style="width: 50%" class="clear">
+                        <table style="float:right;">
+                            <tbody>
+                                <tr>
+                                    <td style="padding-right:10px;">Address:</td>
+                                    <td>{{@$order->getprovince->eng_name.','.@$order->getDistrict->np_name.','.@$order->area.','.@$order->additional_address.',Nepal'}}</td>
+                                    {{-- <td>{{@$order->province.','.@$order->district.','.@$order->area.','.@$order->additional_address.',Nepal'}}</td> --}}
+                                </tr>
+                                <tr>
+                                    <td style="padding-right:10px;">Email:</td>
+                                    <td>{{@$order->email}}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-right:10px;">Phone:</td>
+                                    <td>{{@$customer->phone ? @$customer->phone :((@$order->phone) ? @$order->phone:@$order->b_phone)}}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-right:10px;">Payment Method:</td>
+                                    <td>Cash on Delivery</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pdf-tables" style="margin-top:20px;">
+        @if (count($data) > 0)
+            <table class="table " border='1' width="100%" class="pdf-tables">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Product Discount</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($data as $key => $product)
+                    {{-- @dd($product) --}}
+                        <tr>
+                            <td>{{ $key + 1 }}</td>
+                            <td style="text-transform: capitalize;">{{ @$product->product_name }}</td>
+                            {{-- <td>{{ @$product->qty }}</td>
+                            <td>{{ @$product->price }}</td>
+                            <td>{{ @$product->discount }}</td>
+                            <td>{{ @$product->sub_total_price }}</td> --}}
+                            <td>{{ @$product->qty }}</td>
+                            <td>{{ formattedNepaliNumber(@$product->price) }}</td>
+                            <td>{{ formattedNepaliNumber(@$product->discount*@$product->qty) }}</td>
+                            <td>{{ formattedNepaliNumber(@$product->sub_total) }}</td>
+                        </tr>
+                    @endforeach
+                   
+                    {{-- <tr>
+                        <td rowspan="2" colspan="4"></td>
+                        <td>Shipping Charge:</td>
+                        <td><strong>{{@$order->shipping_charge}}</strong></td>
+                    </tr> --}}
+                    @if ($seller_order->total_vat_amount !=0 && $seller_order->total_vat_amount >0)
+                    <tr>
+                        <td rowspan="2" colspan="4">{{convertNumberIntoWord($data->sum('sub_total')+@$seller_order->total_vat_amount)}}</td>
+                        <td >Vat:</td>
+                        <td><strong>{{ formattedNepaliNumber(@$seller_order->total_vat_amount) }}</strong></td>
+                    </tr>
+                    @else
+                    <tr>
+                        <td rowspan="2" colspan="4">{{convertNumberIntoWord($data->sum('sub_total')+@$seller_order->total_vat_amount)}}</td>
+                        <td >VAT:</td>
+                        <td><strong>0</strong></td>
+                    </tr>
+                    @endif
+
+                    <tr>
+                        <td >Grand Total:</td>
+                        <td><strong>{{ formattedNepaliNumber($data->sum('sub_total')+@$seller_order->total_vat_amount) }}</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        @endif
+    </div>
+
+    <div class="pdf-terms">
+        <h4>Terms & Conditions</h4>
+        <ul>
+            <li>The policy of an invoice bill typically includes:</li>
+            <li><strong>Payment terms:</strong> This outlines the payment due date, the payment methods accepted, and any penalties or late fees that may apply if payment is not received by the due date.</li>
+            <li><strong>Delivery terms:</strong> This outlines the delivery method, shipping costs, and any other terms related to the delivery of the products or services.</li>
+            <li><strong>Invoice format:</strong> This outlines the format and structure of the invoice, including any specific requirements for including certain information or details.</li>
+            <li><strong>Tax requirements:</strong> This outlines any tax requirements related to the sale, including the tax rate, any exemptions, and how the tax should be calculated and included on the invoice.</li>
+            <li><strong>Dispute resolution:</strong> This outlines the process for resolving any disputes related to the invoice, such as discrepancies in the products or services provided or payment amounts.</li>
+            <li>Overall, the policy of an invoice bill is designed to ensure that the transaction is conducted fairly and efficiently, and that both the buyer and seller understand their rights and responsibilities.</li>
+            
+        </ul>
+    </div>
+</body>
+
+</html>
